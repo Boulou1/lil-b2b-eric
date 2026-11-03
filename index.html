@@ -132,7 +132,7 @@
   var INFOS = {
     nomEvent: 'LIL B2B ERIC', style: 'Disco · House · Tek', date: 'Vendredi 20 novembre',
     horaires: '21h – 2h', lieu: 'Goldie – La Brasserie des Arts',
-    adresse: '28 rue Saint-André des Arts, 75006 Paris', prix: 10, capacite: 100,
+    adresse: '28 rue Saint-André des Arts, 75006 Paris', prix: 10, capacite: 75,
     lienLydia: 'https://pay.lydia.me/l?t=alberict541y',
     lienRevolut: 'https://revolut.me/alberict01'
   };
@@ -143,7 +143,7 @@
 
   var enLocal = location.protocol === 'file:' || location.hostname === 'localhost';
   // Pas encore branché : démo en local, « bientôt ouvertes » en ligne
-  var demo = { places_restantes: 100, verifier: 100, confirmer: { numero: 1, restantes: 99 } };
+  var demo = { places_restantes: 75, verifier: 75, confirmer: { numero: 1, restantes: 74 } };
 
   // Appelle une fonction de supabase.sql
   function rpc(fonction, params) {
