@@ -73,13 +73,9 @@
   button:disabled { opacity: .55; cursor: default; }
   .btn.lydia { background: var(--bleu); color: #fff7ea; border-color: var(--bleu); box-shadow: 3px 3px 0 var(--orange); }
   .btn.revolut { background: var(--jaune); color: var(--bleu); margin-top: 12px; }
+  button.paye { background: #2f9e44; margin-top: 26px; }
 
   .erreur { color: var(--rouge); margin-top: 12px; min-height: 1em; text-align: center; }
-  .code {
-    font-family: "Permanent Marker", cursive; font-size: 44px; letter-spacing: 8px; text-align: center;
-    color: var(--rouge); padding: 10px; margin: 10px 0 14px;
-    border: 3px dashed var(--rouge); border-radius: 12px; transform: rotate(-1.5deg);
-  }
   .etapes { line-height: 1.45; padding-left: 22px; margin: 0; }
   .complet { text-align: center; font-family: "Permanent Marker", cursive; font-size: 30px; color: var(--rouge); padding: 30px 10px; }
   .petit { font-size: 15px; margin-top: 16px; text-align: center; opacity: .75; }
@@ -119,72 +115,72 @@
 
   <div id="complet" class="boite complet cache">Sold out ! 🪩</div>
 
-  <div id="resultat" class="boite cache">
-    <div>Ta place est réservée 🪩 Ton code :</div>
-    <div class="code" id="code"></div>
+  <div id="paiement" class="boite cache">
     <ol class="etapes">
-      <li><strong>Fais une capture d'écran</strong> de cette page.</li>
-      <li>Paie <strong id="prix2"></strong> avec un des boutons ci-dessous.</li>
-      <li>Écris ton <strong>code</strong> dans le message du paiement.</li>
+      <li>Paie <strong id="prix2"></strong> avec Lydia ou Revolut.</li>
+      <li>Mets <strong id="tonnom"></strong> dans le message du paiement.</li>
+      <li>Reviens ici et clique sur <strong>« J'ai payé »</strong>.</li>
     </ol>
-    <a class="btn lydia cache" id="lydia" target="_blank">Payer avec Lydia</a>
-    <a class="btn revolut cache" id="revolut" target="_blank">Payer avec Revolut</a>
-    <div class="petit">📩 Tu vas aussi recevoir ce code par email (pense à regarder tes spams).<br>Sans paiement, la réservation peut être annulée.</div>
+    <a class="btn lydia cache" id="lydia" target="_blank" data-moyen="Lydia">Payer avec Lydia</a>
+    <a class="btn revolut cache" id="revolut" target="_blank" data-moyen="Revolut">Payer avec Revolut</a>
+    <button type="button" id="jaipaye" class="paye">✅ J'ai payé</button>
+    <div class="erreur" id="erreur2"></div>
+  </div>
+
+  <div id="fini" class="boite cache" style="text-align:center">
+    <div class="complet" style="padding:10px 0 6px">C'est bon, tu es sur la liste ! 🪩</div>
+    <div>Place n°<strong id="numero"></strong> · à l'entrée, donne juste ton prénom et ton nom.</div>
+    <div class="petit">📩 Tu vas recevoir un email de confirmation (pense à regarder tes spams).</div>
   </div>
 
   <div class="deco">🪩 🍷 🍺 💿</div>
 </div>
 
 <script>
-  // Version GitHub Pages : colle ici l'URL de l'application Web Apps Script (…/exec)
+  // URL de l'application Web Apps Script (…/exec)
   var API_URL = '';
 
-  var dansGoogle = typeof google !== 'undefined' && google.script;
   var enLocal = location.protocol === 'file:' || location.hostname === 'localhost';
-  // Ni dans Google ni d'API_URL (fichier ouvert en local) : mode démo pour voir le rendu
+  // Pas d'API_URL et fichier ouvert en local : mode démo pour voir le rendu
   var demo = {
-    getInfos: function () {
-      return { nomEvent: 'LIL B2B ERIC', style: 'Disco · House · Tek', date: 'Vendredi 20 novembre',
-               horaires: '21h – 2h', lieu: 'Goldie – La Brasserie des Arts',
-               adresse: '28 rue Saint-André des Arts, 75006 Paris', prix: 10, capacite: 70,
-               restantes: 70, affiche: 'affiche.jpg', lienLydia: '#', lienRevolut: '#' };
-    },
-    reserver: function () { return { code: 'A7K2Q', restantes: 69 }; }
+    infos: { nomEvent: 'LIL B2B ERIC', style: 'Disco · House · Tek', date: 'Vendredi 20 novembre',
+             horaires: '21h – 2h', lieu: 'Goldie – La Brasserie des Arts',
+             adresse: '28 rue Saint-André des Arts, 75006 Paris', prix: 10, capacite: 70,
+             restantes: 70, lienLydia: '#', lienRevolut: '#' },
+    verifier: { ok: true },
+    confirmer: { numero: 1, restantes: 69 }
   };
 
-  function appeler(fn, arg, ok, ko) {
-    if (dansGoogle) {
-      google.script.run.withSuccessHandler(ok).withFailureHandler(ko)[fn](arg);
-    } else if (API_URL) {
-      var requete = fn === 'getInfos'
-        ? fetch(API_URL + '?api=infos')
-        : fetch(API_URL, { method: 'POST', body: JSON.stringify(arg) });
+  // action : 'infos' (GET) ou 'verifier' / 'confirmer' (POST)
+  function appeler(action, donnees, ok, ko) {
+    if (API_URL) {
+      var requete = action === 'infos'
+        ? fetch(API_URL)
+        : fetch(API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action: action }, donnees)) });
       requete
         .then(function (r) { return r.json(); })
         .then(function (d) { d.erreur ? ko(new Error(d.erreur)) : ok(d); },
               function () { ko(new Error('Connexion impossible, réessaie dans un instant.')); });
     } else if (enLocal) {
-      setTimeout(function () { try { ok(demo[fn](arg)); } catch (e) { ko(e); } }, 400);
+      setTimeout(function () { ok(demo[action]); }, 400);
     } else {
       // En ligne mais pas encore branché sur Google : infos de la soirée, sans réservation
-      var i = demo.getInfos();
-      i.bientot = true;
-      ok(i);
+      ok(Object.assign({ bientot: true }, demo.infos));
     }
   }
 
   var $ = function (id) { return document.getElementById(id); };
+  var montrer = function (id) { $(id).classList.remove('cache'); };
+  var cacher = function (id) { $(id).classList.add('cache'); };
+  var personne = null;
+  var moyen = '';
 
-  function afficherRestantes(n) {
-    $('restantes').textContent = n;
-    if (n <= 0) {
-      $('ouvrir').classList.add('cache');
-      $('formulaire').classList.add('cache');
-      $('complet').classList.remove('cache');
-    }
+  function complet() {
+    ['ouvrir', 'formulaire', 'paiement'].forEach(cacher);
+    montrer('complet');
   }
 
-  appeler('getInfos', null, function (i) {
+  appeler('infos', null, function (i) {
     document.title = i.nomEvent;
     $('titre').textContent = i.nomEvent;
     $('style').textContent = i.style || '';
@@ -193,42 +189,61 @@
     $('adresse').textContent = i.adresse || '';
     $('prix').textContent = i.prix + ' euros';
     $('prix2').textContent = i.prix + ' €';
-    // Sur GitHub Pages, affiche.jpg est à côté de la page
-    var affiche = i.affiche || (dansGoogle ? '' : 'affiche.jpg');
-    if (affiche) { $('affiche').src = affiche; $('affiche').classList.remove('cache'); }
-    if (i.lienLydia) { $('lydia').href = i.lienLydia; $('lydia').classList.remove('cache'); }
-    if (i.lienRevolut) { $('revolut').href = i.lienRevolut; $('revolut').classList.remove('cache'); }
+    $('affiche').src = 'affiche.jpg';
+    montrer('affiche');
+    if (i.lienLydia) { $('lydia').href = i.lienLydia; montrer('lydia'); }
+    if (i.lienRevolut) { $('revolut').href = i.lienRevolut; montrer('revolut'); }
+    $('restantes').textContent = i.restantes;
     if (i.bientot) {
-      $('restantes').textContent = i.capacite;
       $('complet').textContent = 'Réservations bientôt ouvertes 🪩';
-      $('complet').classList.remove('cache');
-      return;
+      montrer('complet');
+    } else if (i.restantes <= 0) {
+      complet();
+    } else {
+      montrer('ouvrir');
     }
-    $('ouvrir').classList.remove('cache');
-    afficherRestantes(i.restantes);
   }, function (e) { $('lieu').textContent = 'Erreur de chargement : ' + e.message; });
 
   $('ouvrir').addEventListener('click', function () {
-    $('ouvrir').classList.add('cache');
-    $('formulaire').classList.remove('cache');
+    cacher('ouvrir');
+    montrer('formulaire');
     $('formulaire').prenom.focus();
   });
 
+  // Étape 1 : on vérifie qu'il reste une place avant d'envoyer payer
   $('formulaire').addEventListener('submit', function (ev) {
     ev.preventDefault();
     var f = ev.target;
+    personne = { prenom: f.prenom.value, nom: f.nom.value, email: f.email.value, tel: f.tel.value };
     $('bouton').disabled = true;
     $('erreur').textContent = '';
-    appeler('reserver', {
-      prenom: f.prenom.value, nom: f.nom.value, email: f.email.value, tel: f.tel.value
-    }, function (r) {
-      $('code').textContent = r.code;
-      $('formulaire').classList.add('cache');
-      $('resultat').classList.remove('cache');
-      $('restantes').textContent = r.restantes;
+    appeler('verifier', personne, function () {
+      $('tonnom').textContent = personne.prenom.trim() + ' ' + personne.nom.trim();
+      cacher('formulaire');
+      montrer('paiement');
     }, function (e) {
       $('bouton').disabled = false;
-      $('erreur').textContent = e.message.replace(/^Error:\s*/, '');
+      $('erreur').textContent = e.message;
+    });
+  });
+
+  // Étape 2 : on retient le moyen de paiement choisi
+  ['lydia', 'revolut'].forEach(function (id) {
+    $(id).addEventListener('click', function () { moyen = $(id).dataset.moyen; });
+  });
+
+  // Étape 3 : « J'ai payé » ajoute la personne à la liste
+  $('jaipaye').addEventListener('click', function () {
+    $('jaipaye').disabled = true;
+    $('erreur2').textContent = '';
+    appeler('confirmer', Object.assign({ moyen: moyen }, personne), function (r) {
+      $('numero').textContent = r.numero;
+      $('restantes').textContent = r.restantes;
+      cacher('paiement');
+      montrer('fini');
+    }, function (e) {
+      $('jaipaye').disabled = false;
+      $('erreur2').textContent = e.message;
     });
   });
 </script>
