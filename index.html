@@ -88,20 +88,9 @@
 <div class="carte">
   <img id="affiche" class="affiche cache" alt="Affiche de la soirée">
 
-  <h1 class="titre" id="titre">…</h1>
-  <div class="style" id="style"></div>
-  <div class="trait"></div>
-
-  <div class="infos">
-    <div class="date" id="date"></div>
-    <div id="lieu"></div>
-    <div class="adresse" id="adresse"></div>
-  </div>
-
-  <div class="badges">
-    <div class="badge" id="prix"></div>
-    <div class="badge bleu">Places limitées</div>
-  </div>
+  <!-- Titre, date et lieu sont déjà sur l'affiche ; gardés en texte caché pour l'accessibilité -->
+  <h1 class="titre cache" id="titre">…</h1>
+  <div class="infos cache" id="lieu"></div>
 
   <button type="button" id="ouvrir" class="cache">Je prends ma place !</button>
 
@@ -188,11 +177,7 @@
   (function (i) {
     document.title = i.nomEvent;
     $('titre').textContent = i.nomEvent;
-    $('style').textContent = i.style;
-    $('date').textContent = i.date + ' · ' + i.horaires;
-    $('lieu').textContent = i.lieu;
-    $('adresse').textContent = i.adresse;
-    $('prix').textContent = i.prix + ' euros';
+    $('lieu').textContent = i.date + ' · ' + i.horaires + ' · ' + i.lieu;
     $('prix2').textContent = i.prix + ' €';
     $('affiche').src = 'affiche.jpg';
     montrer('affiche');
@@ -206,7 +191,7 @@
   } else {
     rpc('places_restantes').then(function (n) {
       n > 0 ? montrer('ouvrir') : complet();
-    }, function (e) { $('lieu').textContent = e.message; });
+    }, function (e) { $('complet').textContent = e.message; montrer('complet'); });
   }
 
   $('ouvrir').addEventListener('click', function () {
