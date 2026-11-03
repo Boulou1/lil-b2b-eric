@@ -10,6 +10,7 @@
 4. À 70 inscrits, la page affiche « Sold out ».
 
 ## Pendant la vente
+- À chaque « J'ai payé », ton bot Telegram **@LilxAlbeDJbot** t'envoie la nouvelle place et la liste complète à jour.
 - La colonne **paye_avec** dit Lydia ou Revolut. La case **verifie** est pour toi si tu veux cocher les paiements reçus.
 - Quelqu'un n'a pas vraiment payé ? Coche sa ligne → **Delete rows** : la place se libère.
 
@@ -24,4 +25,5 @@ Supabase → SQL Editor → colle `create or replace function capacite() returns
 
 ## Bon à savoir
 - Un projet Supabase gratuit **se met en pause après 7 jours sans aucune visite**. S'il est en pause, clique sur **Restore** dans Supabase (ça prend 1 minute).
-- `supabase.sql` est le code qui a créé la liste : tu n'as pas besoin d'y toucher.
+- `supabase.sql` et `telegram.sql` sont le code qui a créé la liste et la notification : tu n'as pas besoin d'y toucher.
+- Le token du bot est rangé dans Supabase (Vault), jamais sur GitHub. Pour en changer : BotFather → `/revoke`, puis SQL Editor → `select vault.update_secret((select id from vault.secrets where name = 'telegram_token'), 'NOUVEAU_TOKEN');`
