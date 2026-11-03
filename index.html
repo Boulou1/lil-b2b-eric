@@ -73,7 +73,8 @@
   button:disabled { opacity: .55; cursor: default; }
   .btn.lydia { background: var(--bleu); color: #fff7ea; border-color: var(--bleu); box-shadow: 3px 3px 0 var(--orange); }
   .btn.revolut { background: var(--jaune); color: var(--bleu); margin-top: 12px; }
-  button.paye { background: #2f9e44; margin-top: 26px; }
+  .separation { text-align: center; margin: 30px 0 0; padding-top: 18px; border-top: 2px dashed var(--bleu); opacity: .8; }
+  button.paye { background: #2f9e44; margin-top: 10px; }
 
   .erreur { color: var(--rouge); margin-top: 12px; min-height: 1em; text-align: center; }
   .etapes { line-height: 1.45; padding-left: 22px; margin: 0; }
@@ -123,6 +124,7 @@
     </ol>
     <a class="btn lydia cache" id="lydia" target="_blank" data-moyen="Lydia">Payer avec Lydia</a>
     <a class="btn revolut cache" id="revolut" target="_blank" data-moyen="Revolut">Payer avec Revolut</a>
+    <div class="separation">une fois le paiement fait ⤵</div>
     <button type="button" id="jaipaye" class="paye">✅ J'ai payé</button>
     <div class="erreur" id="erreur2"></div>
   </div>
