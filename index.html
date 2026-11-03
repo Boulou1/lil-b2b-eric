@@ -130,43 +130,46 @@
   <div id="fini" class="boite cache" style="text-align:center">
     <div class="complet" style="padding:10px 0 6px">C'est bon, tu es sur la liste ! 🪩</div>
     <div>Place n°<strong id="numero"></strong> · à l'entrée, donne juste ton prénom et ton nom.</div>
-    <div class="petit">📩 Tu vas recevoir un email de confirmation (pense à regarder tes spams).</div>
+    <div class="petit">📸 Fais une capture d'écran de cette page, au cas où.</div>
   </div>
 
   <div class="deco">🪩 🍷 🍺 💿</div>
 </div>
 
 <script>
-  // URL de l'application Web Apps Script (…/exec)
-  var API_URL = '';
+  // ================== À PERSONNALISER ==================
+  var INFOS = {
+    nomEvent: 'LIL B2B ERIC', style: 'Disco · House · Tek', date: 'Vendredi 20 novembre',
+    horaires: '21h – 2h', lieu: 'Goldie – La Brasserie des Arts',
+    adresse: '28 rue Saint-André des Arts, 75006 Paris', prix: 10, capacite: 70,
+    lienLydia: 'https://pay.lydia.me/l?t=alberict541y',
+    lienRevolut: 'https://revolut.me/alberict01'
+  };
+  // Supabase → Project Settings → API (la clé « anon » / « publishable » est faite pour être publique)
+  var SUPABASE_URL = '';
+  var SUPABASE_KEY = '';
+  // =====================================================
 
   var enLocal = location.protocol === 'file:' || location.hostname === 'localhost';
-  // Pas d'API_URL et fichier ouvert en local : mode démo pour voir le rendu
-  var demo = {
-    infos: { nomEvent: 'LIL B2B ERIC', style: 'Disco · House · Tek', date: 'Vendredi 20 novembre',
-             horaires: '21h – 2h', lieu: 'Goldie – La Brasserie des Arts',
-             adresse: '28 rue Saint-André des Arts, 75006 Paris', prix: 10, capacite: 70,
-             restantes: 70, lienLydia: '#', lienRevolut: '#' },
-    verifier: { ok: true },
-    confirmer: { numero: 1, restantes: 69 }
-  };
+  // Pas encore branché : démo en local, « bientôt ouvertes » en ligne
+  var demo = { places_restantes: 70, verifier: 70, confirmer: { numero: 1, restantes: 69 } };
 
-  // action : 'infos' (GET) ou 'verifier' / 'confirmer' (POST)
-  function appeler(action, donnees, ok, ko) {
-    if (API_URL) {
-      var requete = action === 'infos'
-        ? fetch(API_URL)
-        : fetch(API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action: action }, donnees)) });
-      requete
-        .then(function (r) { return r.json(); })
-        .then(function (d) { d.erreur ? ko(new Error(d.erreur)) : ok(d); },
-              function () { ko(new Error('Connexion impossible, réessaie dans un instant.')); });
-    } else if (enLocal) {
-      setTimeout(function () { ok(demo[action]); }, 400);
-    } else {
-      // En ligne mais pas encore branché sur Google : infos de la soirée, sans réservation
-      ok(Object.assign({ bientot: true }, demo.infos));
+  // Appelle une fonction de supabase.sql
+  function rpc(fonction, params) {
+    if (!SUPABASE_URL) {
+      return new Promise(function (ok) { setTimeout(function () { ok(demo[fonction]); }, 400); });
     }
+    var entetes = { 'Content-Type': 'application/json', apikey: SUPABASE_KEY };
+    // Les anciennes clés « anon » (JWT) se passent aussi en Authorization
+    if (SUPABASE_KEY.indexOf('eyJ') === 0) entetes.Authorization = 'Bearer ' + SUPABASE_KEY;
+    return fetch(SUPABASE_URL + '/rest/v1/rpc/' + fonction, {
+      method: 'POST', headers: entetes, body: JSON.stringify(params || {})
+    }).then(function (r) {
+      return r.json().then(function (d) {
+        if (!r.ok) throw new Error(d.message || 'Erreur, réessaie dans un instant.');
+        return d;
+      });
+    }, function () { throw new Error('Connexion impossible, réessaie dans un instant.'); });
   }
 
   var $ = function (id) { return document.getElementById(id); };
@@ -180,29 +183,31 @@
     montrer('complet');
   }
 
-  appeler('infos', null, function (i) {
+  (function (i) {
     document.title = i.nomEvent;
     $('titre').textContent = i.nomEvent;
-    $('style').textContent = i.style || '';
-    $('date').textContent = i.date + (i.horaires ? ' · ' + i.horaires : '');
+    $('style').textContent = i.style;
+    $('date').textContent = i.date + ' · ' + i.horaires;
     $('lieu').textContent = i.lieu;
-    $('adresse').textContent = i.adresse || '';
+    $('adresse').textContent = i.adresse;
     $('prix').textContent = i.prix + ' euros';
     $('prix2').textContent = i.prix + ' €';
+    $('restantes').textContent = i.capacite;
     $('affiche').src = 'affiche.jpg';
     montrer('affiche');
     if (i.lienLydia) { $('lydia').href = i.lienLydia; montrer('lydia'); }
     if (i.lienRevolut) { $('revolut').href = i.lienRevolut; montrer('revolut'); }
-    $('restantes').textContent = i.restantes;
-    if (i.bientot) {
-      $('complet').textContent = 'Réservations bientôt ouvertes 🪩';
-      montrer('complet');
-    } else if (i.restantes <= 0) {
-      complet();
-    } else {
-      montrer('ouvrir');
-    }
-  }, function (e) { $('lieu').textContent = 'Erreur de chargement : ' + e.message; });
+  })(INFOS);
+
+  if (!SUPABASE_URL && !enLocal) {
+    $('complet').textContent = 'Réservations bientôt ouvertes 🪩';
+    montrer('complet');
+  } else {
+    rpc('places_restantes').then(function (n) {
+      $('restantes').textContent = n;
+      n > 0 ? montrer('ouvrir') : complet();
+    }, function (e) { $('lieu').textContent = e.message; });
+  }
 
   $('ouvrir').addEventListener('click', function () {
     cacher('ouvrir');
@@ -217,7 +222,7 @@
     personne = { prenom: f.prenom.value, nom: f.nom.value, email: f.email.value, tel: f.tel.value };
     $('bouton').disabled = true;
     $('erreur').textContent = '';
-    appeler('verifier', personne, function () {
+    rpc('verifier', { p_email: personne.email }).then(function () {
       $('tonnom').textContent = personne.prenom.trim() + ' ' + personne.nom.trim();
       cacher('formulaire');
       montrer('paiement');
@@ -236,7 +241,10 @@
   $('jaipaye').addEventListener('click', function () {
     $('jaipaye').disabled = true;
     $('erreur2').textContent = '';
-    appeler('confirmer', Object.assign({ moyen: moyen }, personne), function (r) {
+    rpc('confirmer', {
+      p_prenom: personne.prenom, p_nom: personne.nom, p_email: personne.email,
+      p_tel: personne.tel, p_moyen: moyen
+    }).then(function (r) {
       $('numero').textContent = r.numero;
       $('restantes').textContent = r.restantes;
       cacher('paiement');

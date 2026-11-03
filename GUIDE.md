@@ -1,44 +1,46 @@
-# Brancher la billetterie (gratuit, ~10 min)
+# Brancher la billetterie (gratuit, ~5 min, sans Google)
 
-La page est déjà en ligne sur **https://boulou1.github.io/lil-b2b-eric/**.
-Il reste à brancher le « cerveau » côté Google : il compte les 70 places, garde la liste dans un Google Sheet, envoie les mails et prévient ton bot Telegram.
+La page est en ligne sur **https://boulou1.github.io/lil-b2b-eric/**.
+La liste des inscrits est rangée dans **Supabase** (base de données gratuite) : elle compte les 70 places et garde la liste, que toi seul peux voir.
 
-## 1. Créer le Google Sheet et coller le code
-1. Ouvre [sheets.new](https://sheets.new) et nomme le fichier « Billetterie LIL B2B ERIC ».
-2. Menu **Extensions → Apps Script**.
-3. Efface tout ce qu'il y a dans `Code.gs` et colle le contenu du fichier **Code.gs** (Claude l'a mis dans ton presse-papiers : ⌘V).
-4. 💾 **Enregistrer**.
+## 1. Créer le projet Supabase
+1. Va sur [supabase.com](https://supabase.com) → **Start your project** → **Continue with GitHub** (compte Boulou1).
+2. **New project** :
+   - Name : `lil-b2b-eric`
+   - Database password : clique sur **Generate a password** (tu n'en auras pas besoin ensuite)
+   - Region : **West EU (Paris)** ou **Central EU (Frankfurt)**
+   - → **Create new project**, attends ~1 minute.
 
-## 2. Créer le bot Telegram (optionnel mais conseillé)
-1. Dans Telegram, ouvre **@BotFather** → `/newbot` → donne un nom (ex. « Liste LIL B2B ERIC ») et un pseudo qui finit par `bot`.
-2. BotFather te donne un **token** (genre `123456:ABC-xyz…`). Colle-le dans `CONFIG`, ligne `telegramToken: '...'`.
-   ⚠️ Ne l'envoie à personne et ne le mets jamais sur GitHub.
-3. Ouvre ton nouveau bot (lien donné par BotFather) et appuie sur **Démarrer** (sinon il n'a pas le droit de t'écrire).
-4. Ouvre **@userinfobot** → il te répond ton **Id** (un nombre). Colle-le dans `CONFIG`, ligne `telegramChatId: '...'`.
-5. 💾 **Enregistrer**.
+## 2. Créer la liste
+1. Menu de gauche : **SQL Editor** → **New query**.
+2. Colle tout le contenu du fichier **supabase.sql** (Claude l'a mis dans ton presse-papiers : ⌘V).
+3. **Run**. Tu dois voir « Success. No rows returned ».
 
-## 3. Autoriser et tester
-1. En haut de l'éditeur, choisis la fonction **`test`** dans la liste, puis **▶ Exécuter**.
-2. Google demande des autorisations → **Autoriser l'accès**.
-   - « Google n'a pas validé cette application » : **Paramètres avancés → Accéder à … (non sécurisé)**. C'est normal, c'est ton propre script.
-3. Tu dois recevoir sur Telegram : « 🪩 Le bot de LIL B2B ERIC est branché ! »
+## 3. Envoyer 2 infos à Claude
+Menu de gauche : **Project Settings** (⚙️) → **API** (ou **Data API** / **API Keys**). Copie :
+- la **Project URL** (genre `https://abcdefgh.supabase.co`)
+- la clé **anon public** (commence par `eyJ…`) ou **publishable** (commence par `sb_publishable_…`)
 
-## 4. Déployer
-1. **Déployer → Nouveau déploiement** → ⚙️ → **Application Web**.
-2. **Exécuter en tant que** : Moi · **Qui a accès** : Tout le monde → **Déployer**.
-3. Copie l'**URL de l'application Web** (elle finit par `/exec`) et **envoie-la à Claude** : il la branche sur la page et les réservations s'ouvrent.
+Ces deux infos sont **faites pour être publiques**, tu peux les envoyer sans risque.
+⚠️ N'envoie **jamais** la clé `service_role` / `secret`.
+
+Claude les met dans la page, republie, et les réservations s'ouvrent.
 
 ## Pendant la vente
-- Chaque « ✅ J'ai payé » ajoute une ligne dans l'onglet **Inscriptions**, envoie un mail de confirmation à la personne (depuis ton Gmail) et t'envoie la **liste à jour sur Telegram**.
-- La colonne **« Payé avec »** dit si c'est Lydia ou Revolut. La case **« Vérifié ? »** est pour toi si tu veux cocher au fur et à mesure que tu vois les paiements arriver.
+- Chaque « ✅ J'ai payé » ajoute une ligne dans la liste.
+- Pour la voir : Supabase → **Table Editor** → **inscriptions**. Ça marche aussi depuis le navigateur de ton téléphone.
+- La colonne **paye_avec** dit Lydia ou Revolut. La case **verifie** est pour toi si tu veux cocher les paiements reçus.
 - À 70 inscrits, la page affiche **« Sold out »**.
-- Quelqu'un qui n'a pas vraiment payé ? **Supprime sa ligne** : la place se libère.
+- Quelqu'un n'a pas vraiment payé ? Coche sa ligne → **Delete** : la place se libère.
 
 ## Récupérer la liste en Excel
-Dans le Google Sheet : **Fichier → Télécharger → Microsoft Excel (.xlsx)**.
+Table Editor → **inscriptions** → bouton **Export** (ou **…**) → **Export to CSV**. Le fichier s'ouvre dans Excel ou Numbers.
 
 ## Le jour J
-La dernière liste Telegram ou le Google Sheet sur ton téléphone = ta liste d'entrée. Les gens donnent leur prénom et leur nom.
+Ouvre la liste dans le Table Editor (ou l'export CSV) : les gens donnent leur prénom et leur nom à l'entrée.
 
-## Modifier après coup
-Si tu changes `CONFIG` (places, liens…) : **Déployer → Gérer les déploiements → ✏️ → Version : Nouvelle version → Déployer**. L'URL `/exec` reste la même.
+## Changer le nombre de places
+SQL Editor → `create or replace function capacite() returns int language sql immutable as $$ select 80 $$;` → **Run**. Dis-le aussi à Claude pour qu'il mette à jour l'affichage de la page.
+
+## Bon à savoir
+Un projet Supabase gratuit **se met en pause après 7 jours sans aucune visite**. Pendant la vente il y aura des visites, donc pas de souci ; si jamais il est en pause, clique sur **Restore** dans Supabase.
