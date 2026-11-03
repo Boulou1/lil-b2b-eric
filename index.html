@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --papier: #f6e2c4;
+    --rouge: #e62a2a;
+    --bleu: #2340c4;
+    --orange: #f2992e;
+    --jaune: #f6bd2c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: "Patrick Hand", "Comic Sans MS", cursive;
+    font-size: 19px; color: var(--bleu);
+    background: var(--papier);
+    display: flex; justify-content: center; padding: 28px 18px 48px;
+  }
+  .carte { width: 100%; max-width: 440px; }
+
+  .affiche { display: block; width: 100%; border-radius: 6px; margin-bottom: 22px;
+             box-shadow: 4px 4px 0 var(--bleu); border: 2.5px solid var(--bleu); }
+
+  .titre {
+    font-family: "Permanent Marker", cursive; color: var(--rouge);
+    font-size: 54px; line-height: .95; margin: 0; text-align: center;
+    transform: rotate(-3deg);
+  }
+  .style {
+    font-family: "Permanent Marker", cursive; color: var(--bleu);
+    text-align: center; font-size: 24px; margin: 14px 0 4px;
+  }
+  .trait { height: 4px; width: 140px; margin: 0 auto 20px; background: var(--rouge);
+           border-radius: 4px; transform: rotate(-2deg); }
+  .infos { text-align: center; line-height: 1.35; margin-bottom: 18px; }
+  .infos .date { font-family: "Permanent Marker", cursive; font-size: 22px; }
+  .infos .adresse { font-size: 16px; opacity: .85; text-transform: uppercase; letter-spacing: .5px; }
+
+  .badges { display: flex; gap: 10px; justify-content: center; margin-bottom: 22px; flex-wrap: wrap; }
+  .badge {
+    border: 2.5px solid var(--rouge); color: var(--rouge); border-radius: 50%;
+    padding: 6px 18px; font-family: "Permanent Marker", cursive; font-size: 17px;
+    transform: rotate(-4deg); background: transparent;
+  }
+  .badge.bleu { border-color: var(--bleu); color: var(--bleu); border-radius: 999px; transform: rotate(2deg); }
+
+  .boite {
+    background: #fbefdc; border: 2.5px solid var(--bleu); border-radius: 14px;
+    padding: 20px; box-shadow: 5px 5px 0 var(--orange);
+  }
+  label { display: block; margin: 12px 0 4px; font-size: 18px; }
+  label:first-child { margin-top: 0; }
+  input {
+    width: 100%; padding: 10px 12px; border-radius: 8px; font-size: 18px;
+    border: 2px solid var(--bleu); background: #fffaf1; color: var(--bleu);
+    font-family: inherit;
+  }
+  input:focus { outline: none; border-color: var(--rouge); box-shadow: 0 0 0 3px rgba(230,42,42,.15); }
+
+  button, .btn {
+    display: block; width: 100%; margin-top: 18px; padding: 12px; border-radius: 10px;
+    font-family: "Permanent Marker", cursive; font-size: 21px; cursor: pointer;
+    text-align: center; text-decoration: none; letter-spacing: .5px;
+    background: var(--rouge); color: #fff7ea; border: 2.5px solid var(--bleu);
+    box-shadow: 3px 3px 0 var(--bleu); transition: transform .08s, box-shadow .08s;
+  }
+  button:active, .btn:active { transform: translate(3px, 3px); box-shadow: none; }
+  button:disabled { opacity: .55; cursor: default; }
+  .btn.lydia { background: var(--bleu); color: #fff7ea; border-color: var(--bleu); box-shadow: 3px 3px 0 var(--orange); }
+  .btn.revolut { background: var(--jaune); color: var(--bleu); margin-top: 12px; }
+
+  .erreur { color: var(--rouge); margin-top: 12px; min-height: 1em; text-align: center; }
+  .code {
+    font-family: "Permanent Marker", cursive; font-size: 44px; letter-spacing: 8px; text-align: center;
+    color: var(--rouge); padding: 10px; margin: 10px 0 14px;
+    border: 3px dashed var(--rouge); border-radius: 12px; transform: rotate(-1.5deg);
+  }
+  .etapes { line-height: 1.45; padding-left: 22px; margin: 0; }
+  .complet { text-align: center; font-family: "Permanent Marker", cursive; font-size: 30px; color: var(--rouge); padding: 30px 10px; }
+  .petit { font-size: 15px; margin-top: 16px; text-align: center; opacity: .75; }
+  .deco { text-align: center; font-size: 26px; margin: 26px 0 0; letter-spacing: 10px; }
+  .cache { display: none !important; }
+</style>
+</head>
+<body>
+<div class="carte">
+  <img id="affiche" class="affiche cache" alt="Affiche de la soirée">
+
+  <h1 class="titre" id="titre">…</h1>
+  <div class="style" id="style"></div>
+  <div class="trait"></div>
+
+  <div class="infos">
+    <div class="date" id="date"></div>
+    <div id="lieu"></div>
+    <div class="adresse" id="adresse"></div>
+  </div>
+
+  <div class="badges">
+    <div class="badge" id="prix"></div>
+    <div class="badge bleu"><span id="restantes">…</span> places restantes</div>
+  </div>
+
+  <button type="button" id="ouvrir" class="cache">Je prends ma place !</button>
+
+  <form id="formulaire" class="boite cache">
+    <label>Prénom</label><input name="prenom" required autocomplete="given-name">
+    <label>Nom</label><input name="nom" required autocomplete="family-name">
+    <label>Email</label><input name="email" type="email" required autocomplete="email">
+    <label>Téléphone (optionnel)</label><input name="tel" type="tel" autocomplete="tel">
+    <button type="submit" id="bouton">Continuer vers le paiement →</button>
+    <div class="erreur" id="erreur"></div>
+  </form>
+
+  <div id="complet" class="boite complet cache">Sold out ! 🪩</div>
+
+  <div id="resultat" class="boite cache">
+    <div>Ta place est réservée 🪩 Ton code :</div>
+    <div class="code" id="code"></div>
+    <ol class="etapes">
+      <li><strong>Fais une capture d'écran</strong> de cette page.</li>
+      <li>Paie <strong id="prix2"></strong> avec un des boutons ci-dessous.</li>
+      <li>Écris ton <strong>code</strong> dans le message du paiement.</li>
+    </ol>
+    <a class="btn lydia cache" id="lydia" target="_blank">Payer avec Lydia</a>
+    <a class="btn revolut cache" id="revolut" target="_blank">Payer avec Revolut</a>
+    <div class="petit">📩 Tu vas aussi recevoir ce code par email (pense à regarder tes spams).<br>Sans paiement, la réservation peut être annulée.</div>
+  </div>
+
+  <div class="deco">🪩 🍷 🍺 💿</div>
+</div>
+
+<script>
+  // Version GitHub Pages : colle ici l'URL de l'application Web Apps Script (…/exec)
+  var API_URL = '';
+
+  var dansGoogle = typeof google !== 'undefined' && google.script;
+  var enLocal = location.protocol === 'file:' || location.hostname === 'localhost';
+  // Ni dans Google ni d'API_URL (fichier ouvert en local) : mode démo pour voir le rendu
+  var demo = {
+    getInfos: function () {
+      return { nomEvent: 'LIL B2B ERIC', style: 'Disco · House · Tek', date: 'Vendredi 20 novembre',
+               horaires: '21h – 2h', lieu: 'Goldie – La Brasserie des Arts',
+               adresse: '28 rue Saint-André des Arts, 75006 Paris', prix: 10, capacite: 70,
+               restantes: 70, affiche: 'affiche.jpg', lienLydia: '#', lienRevolut: '#' };
+    },
+    reserver: function () { return { code: 'A7K2Q', restantes: 69 }; }
+  };
+
+  function appeler(fn, arg, ok, ko) {
+    if (dansGoogle) {
+      google.script.run.withSuccessHandler(ok).withFailureHandler(ko)[fn](arg);
+    } else if (API_URL) {
+      var requete = fn === 'getInfos'
+        ? fetch(API_URL + '?api=infos')
+        : fetch(API_URL, { method: 'POST', body: JSON.stringify(arg) });
+      requete
+        .then(function (r) { return r.json(); })
+        .then(function (d) { d.erreur ? ko(new Error(d.erreur)) : ok(d); },
+              function () { ko(new Error('Connexion impossible, réessaie dans un instant.')); });
+    } else if (enLocal) {
+      setTimeout(function () { try { ok(demo[fn](arg)); } catch (e) { ko(e); } }, 400);
+    } else {
+      // En ligne mais pas encore branché sur Google : infos de la soirée, sans réservation
+      var i = demo.getInfos();
+      i.bientot = true;
+      ok(i);
+    }
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function afficherRestantes(n) {
+    $('restantes').textContent = n;
+    if (n <= 0) {
+      $('ouvrir').classList.add('cache');
+      $('formulaire').classList.add('cache');
+      $('complet').classList.remove('cache');
+    }
+  }
+
+  appeler('getInfos', null, function (i) {
+    document.title = i.nomEvent;
+    $('titre').textContent = i.nomEvent;
+    $('style').textContent = i.style || '';
+    $('date').textContent = i.date + (i.horaires ? ' · ' + i.horaires : '');
+    $('lieu').textContent = i.lieu;
+    $('adresse').textContent = i.adresse || '';
+    $('prix').textContent = i.prix + ' euros';
+    $('prix2').textContent = i.prix + ' €';
+    // Sur GitHub Pages, affiche.jpg est à côté de la page
+    var affiche = i.affiche || (dansGoogle ? '' : 'affiche.jpg');
+    if (affiche) { $('affiche').src = affiche; $('affiche').classList.remove('cache'); }
+    if (i.lienLydia) { $('lydia').href = i.lienLydia; $('lydia').classList.remove('cache'); }
+    if (i.lienRevolut) { $('revolut').href = i.lienRevolut; $('revolut').classList.remove('cache'); }
+    if (i.bientot) {
+      $('restantes').textContent = i.capacite;
+      $('complet').textContent = 'Réservations bientôt ouvertes 🪩';
+      $('complet').classList.remove('cache');
+      return;
+    }
+    $('ouvrir').classList.remove('cache');
+    afficherRestantes(i.restantes);
+  }, function (e) { $('lieu').textContent = 'Erreur de chargement : ' + e.message; });
+
+  $('ouvrir').addEventListener('click', function () {
+    $('ouvrir').classList.add('cache');
+    $('formulaire').classList.remove('cache');
+    $('formulaire').prenom.focus();
+  });
+
+  $('formulaire').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var f = ev.target;
+    $('bouton').disabled = true;
+    $('erreur').textContent = '';
+    appeler('reserver', {
+      prenom: f.prenom.value, nom: f.nom.value, email: f.email.value, tel: f.tel.value
+    }, function (r) {
+      $('code').textContent = r.code;
+      $('formulaire').classList.add('cache');
+      $('resultat').classList.remove('cache');
+      $('restantes').textContent = r.restantes;
+    }, function (e) {
+      $('bouton').disabled = false;
+      $('erreur').textContent = e.message.replace(/^Error:\s*/, '');
+    });
+  });
+</script>
+</body>
+</html>
