@@ -100,7 +100,7 @@
 
   <div class="badges">
     <div class="badge" id="prix"></div>
-    <div class="badge bleu"><span id="restantes">…</span> places restantes</div>
+    <div class="badge bleu">Places limitées</div>
   </div>
 
   <button type="button" id="ouvrir" class="cache">Je prends ma place !</button>
@@ -131,7 +131,7 @@
 
   <div id="fini" class="boite cache" style="text-align:center">
     <div class="complet" style="padding:10px 0 6px">C'est bon, tu es sur la liste ! 🪩</div>
-    <div>Place n°<strong id="numero"></strong> · à l'entrée, donne juste ton prénom et ton nom.</div>
+    <div>À l'entrée, donne juste ton prénom et ton nom.</div>
     <div class="petit">📸 Fais une capture d'écran de cette page, au cas où.</div>
   </div>
 
@@ -194,7 +194,6 @@
     $('adresse').textContent = i.adresse;
     $('prix').textContent = i.prix + ' euros';
     $('prix2').textContent = i.prix + ' €';
-    $('restantes').textContent = i.capacite;
     $('affiche').src = 'affiche.jpg';
     montrer('affiche');
     if (i.lienLydia) { $('lydia').href = i.lienLydia; montrer('lydia'); }
@@ -206,7 +205,6 @@
     montrer('complet');
   } else {
     rpc('places_restantes').then(function (n) {
-      $('restantes').textContent = n;
       n > 0 ? montrer('ouvrir') : complet();
     }, function (e) { $('lieu').textContent = e.message; });
   }
@@ -247,8 +245,6 @@
       p_prenom: personne.prenom, p_nom: personne.nom, p_email: personne.email,
       p_tel: personne.tel, p_moyen: moyen
     }).then(function (r) {
-      $('numero').textContent = r.numero;
-      $('restantes').textContent = r.restantes;
       cacher('paiement');
       montrer('fini');
     }, function (e) {
