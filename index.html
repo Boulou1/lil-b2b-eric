@@ -98,7 +98,6 @@
     <label>Prénom</label><input name="prenom" required autocomplete="given-name">
     <label>Nom</label><input name="nom" required autocomplete="family-name">
     <label>Email</label><input name="email" type="email" required autocomplete="email">
-    <label>Téléphone (optionnel)</label><input name="tel" type="tel" autocomplete="tel">
     <button type="submit" id="bouton">Continuer vers le paiement →</button>
     <div class="erreur" id="erreur"></div>
   </form>
@@ -204,7 +203,7 @@
   $('formulaire').addEventListener('submit', function (ev) {
     ev.preventDefault();
     var f = ev.target;
-    personne = { prenom: f.prenom.value, nom: f.nom.value, email: f.email.value, tel: f.tel.value };
+    personne = { prenom: f.prenom.value, nom: f.nom.value, email: f.email.value };
     $('bouton').disabled = true;
     $('erreur').textContent = '';
     rpc('verifier', { p_email: personne.email }).then(function () {
@@ -228,7 +227,7 @@
     $('erreur2').textContent = '';
     rpc('confirmer', {
       p_prenom: personne.prenom, p_nom: personne.nom, p_email: personne.email,
-      p_tel: personne.tel, p_moyen: moyen
+      p_tel: '', p_moyen: moyen
     }).then(function (r) {
       cacher('paiement');
       montrer('fini');
