@@ -7,7 +7,7 @@
 1. La personne clique sur « Je prends ma place ! », remplit prénom, nom, email.
 2. Elle paie 10 € avec Lydia ou Revolut en mettant son nom dans le message.
 3. Elle clique sur « ✅ J'ai payé » → elle est ajoutée à la liste.
-4. À 70 inscrits, la page affiche « Sold out ». Le nombre de places restantes n'est jamais affiché au public.
+4. À 100 inscrits, la page affiche « Sold out ». Le nombre de places restantes n'est jamais affiché au public.
 
 ## Pendant la vente
 - À chaque « J'ai payé », ton bot Telegram **@LilxAlbeDJbot** t'envoie la nouvelle place et la liste complète à jour.

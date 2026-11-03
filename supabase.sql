@@ -2,7 +2,7 @@
 
 -- Nombre total de places
 create or replace function capacite() returns int
-language sql immutable as $$ select 70 $$;
+language sql immutable as $$ select 100 $$;
 
 -- La liste des inscrits (visible uniquement par toi, dans le Table Editor)
 create table if not exists inscriptions (
